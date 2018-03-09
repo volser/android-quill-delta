@@ -32,7 +32,7 @@ fun OpAttributes.mergeReduce(other: OpAttributes, reduce: (Any?, Any?) -> Any? =
             result[e.key] = e.value
         }
         else {
-            result[e.key] = reduce(e.value, existing)
+            result[e.key] = reduce(existing, e.value)
         }
     }
 
