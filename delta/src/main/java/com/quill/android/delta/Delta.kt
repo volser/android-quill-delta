@@ -6,6 +6,8 @@ package com.quill.android.delta
  */
 class Delta  {
 
+    val NULL_CHARACTER = 0x0
+
     var ops: MutableList<Op>
 
     constructor(ops: MutableList<Op> = ArrayList()) {
@@ -143,6 +145,26 @@ class Delta  {
                 }
             }
         }
+
+        return delta.chop()
+    }
+
+    fun diff(other: Delta): Delta {
+        if (ops === other.ops) {
+            return Delta()
+        }
+
+        /*val strings = [this, other].map(function (delta) {
+            return delta.map(function (op) {
+                if (op.insert != null) {
+                    return typeof op.insert === 'string' ? op.insert : NULL_CHARACTER;
+                }
+                var prep = (delta === other) ? 'on' : 'with';
+                throw new Error('diff() called ' + prep + ' non-document');
+            }).join('');
+        })*/
+
+        val delta = Delta()
 
         return delta.chop()
     }
