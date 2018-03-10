@@ -1,5 +1,8 @@
 package com.quill.android.delta
 
+import com.quill.android.delta.utils.diff_match_patch
+import kotlin.math.min
+
 
 /**
  * Created by volser on 07.03.18.
@@ -112,6 +115,10 @@ class Delta  {
         return ops.fold(0){ length, op -> length + Op.length(op) }
     }
 
+    inline fun <R>  map(transform: (Op) -> R): List<R> {
+        return this.ops.map(transform)
+    }
+
     fun compose(other: Delta): Delta {
         val thisIter = Op.Iterator(this.ops)
         val otherIter = Op.Iterator(other.ops)
@@ -154,17 +161,58 @@ class Delta  {
             return Delta()
         }
 
-        /*val strings = [this, other].map(function (delta) {
-            return delta.map(function (op) {
-                if (op.insert != null) {
-                    return typeof op.insert === 'string' ? op.insert : NULL_CHARACTER;
-                }
-                var prep = (delta === other) ? 'on' : 'with';
-                throw new Error('diff() called ' + prep + ' non-document');
-            }).join('');
-        })*/
+        val stringBuilder1 = StringBuilder()
+        val stringBuilder2 = StringBuilder()
 
+        ops.forEach({it ->
+            if (it.insert != null) {
+                if (it.insert is String) stringBuilder1.append(it.insert as String) else stringBuilder1.append(NULL_CHARACTER)
+            } else
+                throw kotlin.Exception("diff() called with non-document")
+        })
+
+        other.ops.forEach({it ->
+            if (it.insert != null) {
+                if (it.insert is String) stringBuilder2.append(it.insert as String) else stringBuilder2.append(NULL_CHARACTER)
+            } else
+                throw kotlin.Exception("diff() called on non-document")
+        })
+
+
+        val thisIter = Op.Iterator(this.ops)
+        var otherIter = Op.Iterator(other.ops)
+        val diffResult = diff_match_patch().diff_main(stringBuilder1.toString(), stringBuilder2.toString())
         val delta = Delta()
+
+        diffResult.forEach {
+            var length = it.text.length
+            while (length > 0) {
+                var opLength = 0
+                when (it.operation) {
+                    diff_match_patch.Operation.INSERT -> {
+                        opLength = min(otherIter.peekLength(), length)
+                        delta.push(otherIter.next(opLength))
+                    }
+                    diff_match_patch.Operation.DELETE -> {
+                        opLength = min(length, thisIter.peekLength())
+                        thisIter.next(opLength)
+                        delta.delete(opLength)
+                    }
+                    diff_match_patch.Operation.EQUAL -> {
+                        opLength = min(min(thisIter.peekLength(), otherIter.peekLength()), length)
+                        val thisOp = thisIter.next(opLength);
+                        val otherOp = otherIter.next(opLength);
+                        if (thisOp.insert == otherOp.insert) {
+                            delta.retain(opLength, AttributesUtil.diff(thisOp.attributes, otherOp.attributes))
+                        } else {
+                            delta.push(otherOp).delete(opLength)
+                        }
+                    }
+                }
+                length -= opLength
+            }
+
+        }
 
         return delta.chop()
     }

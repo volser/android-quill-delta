@@ -30,5 +30,9 @@ class AttributesUtil {
             return if (result.isNotEmpty()) result else null
 
         }
+
+        fun diff(a: OpAttributes?, b: OpAttributes?): OpAttributes? {
+            return null
+        }
     }
 }
