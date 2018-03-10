@@ -9,7 +9,10 @@ import kotlin.math.min
  */
 class Delta  {
 
-    val NULL_CHARACTER = 0x0
+    companion object {
+        val NULL_CODE = 0
+        val NULL_CHARACTER = NULL_CODE.toString()
+    }
 
     var ops: MutableList<Op>
 
@@ -40,8 +43,8 @@ class Delta  {
         return if (num <= 0) this else push(Op.insertOp(num, attributes))
     }
 
-    fun insert(obj: Any, attributes: OpAttributes? = null): Delta {
-        return push(Op.insertOp(obj, attributes))
+    fun insert(obj: Map<String, Any?>, attributes: OpAttributes? = null): Delta {
+        return push(Op.insertOp(HashMap(obj), attributes))
     }
 
     fun insert(text: String, attributes: OpAttributes? = null): Delta {
