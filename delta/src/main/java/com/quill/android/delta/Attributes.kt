@@ -32,7 +32,21 @@ class AttributesUtil {
         }
 
         fun diff(a: OpAttributes?, b: OpAttributes?): OpAttributes? {
-            return null
+            val attr1 = if (a == null) OpAttributes() else OpAttributes(a)
+            val attr2 = if (b == null) OpAttributes() else OpAttributes(b)
+            val result = OpAttributes()
+
+            val keys = mutableListOf<String>()
+            keys.addAll(attr1.keys)
+            keys.addAll(attr2.keys)
+
+            keys.forEach {
+                if (attr1[it] != attr2[it]) {
+                    result[it] = if (attr2.containsKey(it)) attr2[it] else null
+                }
+            }
+
+            return if (result.isNotEmpty()) result else null
         }
     }
 }
