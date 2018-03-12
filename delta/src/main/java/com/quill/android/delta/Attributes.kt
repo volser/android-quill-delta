@@ -48,5 +48,19 @@ class AttributesUtil {
 
             return if (result.isNotEmpty()) result else null
         }
+
+        fun transform(a: OpAttributes?, b: OpAttributes?, priority: Boolean): OpAttributes? {
+            if (a == null) return b
+            if (b == null) return null
+            if (!priority) return b  // b simply overwrites us without priority
+            val result = OpAttributes()
+            b.keys.forEach {
+                if (!a.containsKey(it)) {
+                    result[it] = b[it] // null is a valid value
+                }
+            }
+
+            return if (result.isNotEmpty()) result else null
+        }
     }
 }

@@ -183,7 +183,7 @@ class Delta  {
 
 
         val thisIter = Op.Iterator(this.ops)
-        var otherIter = Op.Iterator(other.ops)
+        val otherIter = Op.Iterator(other.ops)
         val diffResult = diff_match_patch().diff_main(stringBuilder1.toString(), stringBuilder2.toString())
         val delta = Delta()
 
@@ -218,6 +218,52 @@ class Delta  {
         }
 
         return delta.chop()
+    }
+
+    fun transform(other: Delta, priority: Boolean = false): Delta {
+        val thisIter = Op.Iterator(this.ops)
+        val otherIter = Op.Iterator(other.ops)
+        val delta = Delta()
+        while (thisIter.hasNext() || otherIter.hasNext()) {
+            if (thisIter.peekType() === Op.Types.INSERT && (priority || otherIter.peekType() !== Op.Types.INSERT)) {
+                delta.retain(Op.length(thisIter.next()))
+            } else if (otherIter.peekType() === Op.Types.INSERT) {
+                delta.push(otherIter.next())
+            } else {
+                val length = Math.min(thisIter.peekLength(), otherIter.peekLength())
+                val thisOp = thisIter.next(length)
+                val otherOp = otherIter.next(length)
+                if (thisOp.delete > 0) {
+                    // Our delete either makes their delete redundant or removes their retain
+                    continue;
+                } else if (otherOp.delete > 0) {
+                    delta.push(otherOp)
+                } else {
+                    // We retain either their retain or insert
+                    delta.retain(length, AttributesUtil.transform(thisOp.attributes, otherOp.attributes, priority))
+                }
+            }
+        }
+        return delta.chop()
+    }
+
+    fun transformPosition(indexFrom: Int, priority: Boolean = false): Int {
+        val thisIter = Op.Iterator(this.ops)
+        var offset = 0
+        var index = indexFrom
+        while (thisIter.hasNext() && offset <= index) {
+            val length = thisIter.peekLength()
+            val nextType = thisIter.peekType()
+            thisIter.next()
+            if (nextType === Op.Types.DELETE) {
+                index -= Math.min(length, index - offset)
+                continue
+            } else if (nextType === Op.Types.INSERT && (offset < index || !priority)) {
+                index += length
+            }
+            offset += length
+        }
+        return index
     }
 
 }
