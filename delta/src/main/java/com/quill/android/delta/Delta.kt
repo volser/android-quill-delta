@@ -1,12 +1,15 @@
 package com.quill.android.delta
 
 import com.quill.android.delta.utils.diff_match_patch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JSON
 import kotlin.math.min
 
 
 /**
  * Created by volser on 07.03.18.
  */
+@Serializable
 class Delta  {
 
     companion object {
@@ -62,7 +65,6 @@ class Delta  {
     }
 
     fun push(newOp: Op): Delta {
-
         var index = this.ops.size
         var lastOp: Op? = if (index > 0) this.ops[index - 1] else null
         if (lastOp != null) {
@@ -82,13 +84,19 @@ class Delta  {
                 }
             }
 
-
             if (newOp.attributes == lastOp.attributes) {
                 if (newOp.insert is String && lastOp.insert is String) {
-                    lastOp.insert = (lastOp.insert as String) + (newOp.insert as String)
+                    this.ops[index - 1] = Op.insertOp((lastOp.insert as String) + (newOp.insert as String))
+                    if (newOp.attributes != null) {
+                        this.ops[index - 1].attributes = newOp.attributes
+                    }
                     return this
+
                 } else if (newOp.retain > 0 && lastOp.retain > 0) {
-                    lastOp.retain = lastOp.retain + newOp.retain
+                    this.ops[index - 1] = Op.retainOp(lastOp.retain + newOp.retain)
+                    if (newOp.attributes != null) {
+                        this.ops[index - 1].attributes = newOp.attributes
+                    }
                     return this
                 }
             }

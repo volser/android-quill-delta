@@ -1,9 +1,11 @@
 package com.quill.android.delta
 
+import kotlinx.serialization.*
+import kotlinx.serialization.json.JSON
 /**
  * Created by volser on 06.03.18.
  */
-
+@Serializable
 class Op {
 
     enum class Types {

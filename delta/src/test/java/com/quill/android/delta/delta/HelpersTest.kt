@@ -2,6 +2,7 @@ package com.quill.android.delta.delta
 
 import com.quill.android.delta.Delta
 import com.quill.android.delta.utils.attrOf
+import kotlinx.serialization.json.JSON
 import org.junit.Assert
 import org.junit.Test
 
@@ -22,7 +23,7 @@ class HelpersTest {
     @Test
     fun unmergeable() {
         val delta = Delta().insert("Test")
-        val original = Delta().insert("Test")
+        val original = JSON.parse<Delta>(JSON.stringify(delta))
         val concat = Delta().insert("!", attrOf("bold" to true))
         val expected = Delta().insert("Test").insert("!", attrOf("bold" to true))
 
@@ -33,7 +34,7 @@ class HelpersTest {
     @Test
     fun mergeable() {
         val delta = Delta().insert("Test", attrOf("bold" to true))
-        val original = Delta().insert("Test", attrOf("bold" to true))
+        val original = JSON.parse<Delta>(JSON.stringify(delta))
 
         val concat = Delta().insert("!", attrOf("bold" to true)).insert("/n")
         val expected = Delta().insert("Test!", attrOf("bold" to true)).insert("/n")
