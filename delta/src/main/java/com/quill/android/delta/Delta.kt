@@ -266,4 +266,15 @@ class Delta  {
         return index
     }
 
+    fun concat(other: Delta): Delta {
+        val delta = Delta(ArrayList(this.ops))
+        if (other.ops.size > 0) {
+            delta.push(other.ops[0])
+            if (other.ops.size > 1) {
+                delta.ops.addAll(other.ops.subList(1, other.ops.size))
+            }
+        }
+        return delta
+    }
+
 }
