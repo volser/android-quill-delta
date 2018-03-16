@@ -21,7 +21,7 @@ class HelpersTest {
     }
 
     @Test
-    fun unmergeable() {
+    fun concatUnmergeable() {
         val delta = Delta().insert("Test")
         val original = JSON.parse<Delta>(JSON.stringify(delta))
         val concat = Delta().insert("!", attrOf("bold" to true))
@@ -32,7 +32,7 @@ class HelpersTest {
     }
 
     @Test
-    fun mergeable() {
+    fun concatMergeable() {
         val delta = Delta().insert("Test", attrOf("bold" to true))
         val original = JSON.parse<Delta>(JSON.stringify(delta))
 
@@ -41,5 +41,29 @@ class HelpersTest {
 
         Assert.assertEquals(expected, delta.concat(concat))
         Assert.assertEquals(original, delta)
+    }
+
+    @Test
+    fun chopRetain() {
+        val delta = Delta().insert("Test").retain(4)
+        val expected = Delta().insert("Test")
+
+        Assert.assertEquals(expected, delta.chop())
+    }
+
+    @Test
+    fun chopInsert() {
+        val delta = Delta().insert("Test")
+        val expected = Delta().insert("Test")
+
+        Assert.assertEquals(expected, delta.chop())
+    }
+
+    @Test
+    fun chopRetainFormatted() {
+        val delta = Delta().insert("Test").retain(4, attrOf("bold" to true))
+        val expected = Delta().insert("Test").retain(4, attrOf("bold" to true))
+
+        Assert.assertEquals(expected, delta.chop())
     }
 }
