@@ -111,4 +111,60 @@ class HelpersTest {
 
         Assert.assertEquals(1, delta.changeLength())
     }
+
+    @Test
+    fun sliceStart() {
+        val slice = Delta().retain(2).insert("A").slice(2)
+        val expected = Delta().insert("A")
+
+        Assert.assertEquals(expected, slice)
+    }
+
+    @Test
+    fun sliceStartAndEndChop() {
+        val slice = Delta().insert("0123456789").slice(2, 7)
+        val expected = Delta().insert("23456")
+
+        Assert.assertEquals(expected, slice)
+    }
+
+    @Test
+    fun sliceStartAndEndMultiChop() {
+        val slice = Delta().insert("0123", attrOf("bold" to true)).insert("4567").slice(3, 5)
+        val expected = Delta().insert("3", attrOf("bold" to true)).insert("4")
+
+        Assert.assertEquals(expected, slice)
+    }
+
+    @Test
+    fun sliceStartAndEnd() {
+        val slice = Delta().retain(2).insert("A", attrOf("bold" to true)).insert("B").slice(2, 3)
+        val expected = Delta().insert("A", attrOf("bold" to true))
+
+        Assert.assertEquals(expected, slice)
+    }
+
+    @Test
+    fun sliceNoParams() {
+        val delta = Delta().retain(2).insert("A", attrOf("bold" to true)).insert("B")
+        val expected = delta.slice()
+
+        Assert.assertEquals(expected, delta)
+    }
+
+    @Test
+    fun sliceSplitOps() {
+        val slice = Delta().insert("AB", attrOf("bold" to true)).insert("C").slice(1, 2)
+        val expected = Delta().insert("B", attrOf("bold" to true))
+
+        Assert.assertEquals(expected, slice)
+    }
+
+    @Test
+    fun sliceSplitOpsMultiTimes() {
+        val slice = Delta().insert("ABC", attrOf("bold" to true)).insert("D").slice(1, 2)
+        val expected = Delta().insert("B", attrOf("bold" to true))
+
+        Assert.assertEquals(expected, slice)
+    }
 }

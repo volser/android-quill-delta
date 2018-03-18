@@ -310,6 +310,24 @@ class Delta  {
         return delta
     }
 
+    fun slice(start: Int = 0, end: Int = Int.MAX_VALUE): Delta {
+        val ops = arrayListOf<Op>()
+        val iter = Op.Iterator(this.ops)
+        var index = 0
+        while (index < end && iter.hasNext()) {
+            var nextOp : Op
+            if (index < start) {
+                nextOp = iter.next(start - index)
+            } else {
+                nextOp = iter.next(end - index)
+                ops.add(nextOp)
+            }
+            index += Op.length(nextOp)
+        }
+
+        return Delta(ops)
+    }
+
     inline fun eachLine(action: (Delta, OpAttributes, Int) -> Boolean, newline: String = "\n") {
         val iter = Op.Iterator(this.ops)
         var line = Delta()
