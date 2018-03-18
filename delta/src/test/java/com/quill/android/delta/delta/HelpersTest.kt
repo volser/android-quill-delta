@@ -11,6 +11,8 @@ import org.junit.Test
  */
 class HelpersTest {
 
+    val delta = Delta().insert("Hello").insert(hashMapOf("image" to true)).insert("World!")
+
     @Test
     fun concat() {
         val delta = Delta().insert("Test")
@@ -65,5 +67,48 @@ class HelpersTest {
         val expected = Delta().insert("Test").retain(4, attrOf("bold" to true))
 
         Assert.assertEquals(expected, delta.chop())
+    }
+
+    @Test
+    fun filter() {
+        val arr = delta.filter { it.insert is String }
+
+        Assert.assertEquals(2, arr.size)
+    }
+
+    @Test
+    fun map() {
+        val arr = delta.map { if (it.insert is String) it.insert else "" }
+
+        Assert.assertEquals(listOf("Hello", "", "World!"), arr)
+    }
+
+    @Test
+    fun partition() {
+        val arr = delta.partition { it.insert is String }
+
+        Assert.assertEquals(listOf(delta.ops[0], delta.ops[2]), arr.first)
+        Assert.assertEquals(listOf(delta.ops[1]), arr.second)
+    }
+
+    @Test
+    fun lengthDocument() {
+        val delta = Delta().insert("AB", attrOf("bold" to true)).insert(1)
+
+        Assert.assertEquals(3, delta.length())
+    }
+
+    @Test
+    fun lengthMixed() {
+        val delta = Delta().insert("AB", attrOf("bold" to true)).insert(1).retain(2, attrOf("bold" to null)).delete(1)
+
+        Assert.assertEquals(6, delta.length())
+    }
+
+    @Test
+    fun changeLengthMixed() {
+        val delta = Delta().insert("AB", attrOf("bold" to true)).retain(2, attrOf("bold" to null)).delete(1)
+
+        Assert.assertEquals(1, delta.changeLength())
     }
 }

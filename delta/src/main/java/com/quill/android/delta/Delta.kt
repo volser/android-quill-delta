@@ -2,7 +2,6 @@ package com.quill.android.delta
 
 import com.quill.android.delta.utils.diff_match_patch
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JSON
 import kotlin.math.min
 
 
@@ -126,8 +125,34 @@ class Delta  {
         return ops.fold(0){ length, op -> length + Op.length(op) }
     }
 
+    fun changeLength(): Int {
+        return this.reduce(0){
+            length, op -> if (op.insert != null) length + Op.length(op) else if (op.delete > 0) length - op.delete else length
+        }
+    }
+
+    inline fun <R> reduce(initial: R, operation: (acc: R, Op) -> R): R {
+        return ops.fold(initial, operation)
+    }
+
     inline fun <R>  map(transform: (Op) -> R): List<R> {
         return this.ops.map(transform)
+    }
+
+    inline fun filter(predicate: (Op) -> Boolean): List<Op> {
+        return this.ops.filter(predicate)
+    }
+
+    inline fun forEach(action: (Op) -> Unit): Unit {
+        return this.ops.forEach(action)
+    }
+
+    inline fun partition(predicate: (Op) -> Boolean): Pair<List<Op>, List<Op>> {
+        val result = Pair<ArrayList<Op>, ArrayList<Op>>( arrayListOf(), arrayListOf())
+        forEach {
+            if (predicate(it)) result.first.add(it) else result.second.add(it)
+        }
+        return result
     }
 
     fun compose(other: Delta): Delta {
@@ -211,8 +236,8 @@ class Delta  {
                     }
                     diff_match_patch.Operation.EQUAL -> {
                         opLength = min(min(thisIter.peekLength(), otherIter.peekLength()), length)
-                        val thisOp = thisIter.next(opLength);
-                        val otherOp = otherIter.next(opLength);
+                        val thisOp = thisIter.next(opLength)
+                        val otherOp = otherIter.next(opLength)
                         if (thisOp.insert == otherOp.insert) {
                             delta.retain(opLength, AttributesUtil.diff(thisOp.attributes, otherOp.attributes))
                         } else {
@@ -243,7 +268,7 @@ class Delta  {
                 val otherOp = otherIter.next(length)
                 if (thisOp.delete > 0) {
                     // Our delete either makes their delete redundant or removes their retain
-                    continue;
+                    continue
                 } else if (otherOp.delete > 0) {
                     delta.push(otherOp)
                 } else {
@@ -283,6 +308,32 @@ class Delta  {
             }
         }
         return delta
+    }
+
+    inline fun eachLine(action: (Delta, OpAttributes, Int) -> Boolean, newline: String = "\n") {
+        val iter = Op.Iterator(this.ops)
+        var line = Delta()
+        var i = 0
+        while (iter.hasNext()) {
+            if (iter.peekType() !== Op.Types.INSERT) return
+            val thisOp = iter.peek()
+            val start = Op.length(thisOp) - iter.peekLength()
+            val index = if (thisOp?.insert is String) (thisOp.insert as String).indexOf(newline, start) - start else -1
+            if (index < 0) {
+                line.push(iter.next())
+            } else if (index > 0) {
+                line.push(iter.next(index))
+            } else {
+                if (action(line, iter.next(1).attributes ?: OpAttributes(), i)) {
+                    return
+                }
+                i += 1
+                line = Delta()
+            }
+        }
+        if (line.length() > 0) {
+            action(line, OpAttributes(), i)
+        }
     }
 
 }
