@@ -13,7 +13,7 @@ import com.quill.android.delta.utils.attrOf
  */
 class BuilderTest {
 
-    private var ops = mutableListOf<Op>(
+    private var ops = mutableListOf(
             Op.insertOp("abc"),
             Op.retainOp(1, attrOf("color" to "red")),
             Op.deleteOp(4),

@@ -1,7 +1,6 @@
 package com.quill.android.delta
 
 import com.quill.android.delta.utils.mergeReduce
-import kotlin.collections.hashMapOf
 
 /**
  * Created by volser on 08.03.18.

@@ -143,7 +143,7 @@ class Delta  {
         return this.ops.filter(predicate)
     }
 
-    inline fun forEach(action: (Op) -> Unit): Unit {
+    inline fun forEach(action: (Op) -> Unit) {
         return this.ops.forEach(action)
     }
 
@@ -337,16 +337,16 @@ class Delta  {
             val thisOp = iter.peek()
             val start = Op.length(thisOp) - iter.peekLength()
             val index = if (thisOp?.insert is String) (thisOp.insert as String).indexOf(newline, start) - start else -1
-            if (index < 0) {
-                line.push(iter.next())
-            } else if (index > 0) {
-                line.push(iter.next(index))
-            } else {
-                if (!action(line, iter.next(1).attributes ?: OpAttributes(), i)) {
-                    return
+            when {
+                index < 0 -> line.push(iter.next())
+                index > 0 -> line.push(iter.next(index))
+                else -> {
+                    if (!action(line, iter.next(1).attributes ?: OpAttributes(), i)) {
+                        return
+                    }
+                    i += 1
+                    line = Delta()
                 }
-                i += 1
-                line = Delta()
             }
         }
         if (line.length() > 0) {

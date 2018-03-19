@@ -162,9 +162,9 @@ class DiffTest {
     fun immutability() {
         val attr1 = attrOf("color" to "red")
         val attr2 = attrOf("color" to "red")
-        val a1 = Delta().insert("A", attr1);
-        val a2 = Delta().insert("A", attr1);
-        val b1 = Delta().insert("A", attrOf("bold" to true)).insert("B");
+        val a1 = Delta().insert("A", attr1)
+        val a2 = Delta().insert("A", attr1)
+        val b1 = Delta().insert("A", attrOf("bold" to true)).insert("B")
         val b2 = Delta().insert("A", attrOf("bold" to true)).insert("B")
         val expected = Delta().retain(1, attrOf("bold" to true, "color" to null)).insert("B")
 

@@ -18,24 +18,24 @@ class IteratorTest {
                 .insert("Hello", attrOf("bold" to true))
                 .retain(3)
                 .insert(2, attrOf("src" to "http://quilljs.com/"))
-                .delete(4);
+                .delete(4)
     }
 
     @Test
     fun hasNextTrue() {
-        var iter = Op.Iterator(this.delta.ops)
+        val iter = Op.Iterator(this.delta.ops)
         Assert.assertEquals(true, iter.hasNext())
     }
 
     @Test
     fun hasNextFalse() {
-        var iter = Op.Iterator(mutableListOf())
+        val iter = Op.Iterator(mutableListOf())
         Assert.assertEquals(false, iter.hasNext())
     }
 
     @Test
     fun peekLength() {
-        var iter = Op.Iterator(this.delta.ops)
+        val iter = Op.Iterator(this.delta.ops)
         Assert.assertEquals(5, iter.peekLength())
         iter.next()
         Assert.assertEquals(3, iter.peekLength())
@@ -47,20 +47,20 @@ class IteratorTest {
 
     @Test
     fun peekLengthOffset() {
-        var iter = Op.Iterator(this.delta.ops)
+        val iter = Op.Iterator(this.delta.ops)
         iter.next(2)
         Assert.assertEquals(5-2, iter.peekLength())
     }
 
     @Test
     fun peekLengthNoOps() {
-        var iter = Op.Iterator(mutableListOf())
+        val iter = Op.Iterator(mutableListOf())
         Assert.assertEquals(Op.Iterator.INFINITY, iter.peekLength())
     }
 
     @Test
     fun peekType() {
-        var iter = Op.Iterator(this.delta.ops)
+        val iter = Op.Iterator(this.delta.ops)
         Assert.assertEquals(Op.Types.INSERT, iter.peekType())
         iter.next()
         Assert.assertEquals(Op.Types.RETAIN, iter.peekType())
@@ -74,7 +74,7 @@ class IteratorTest {
 
     @Test
     fun next() {
-        var iter = Op.Iterator(this.delta.ops)
+        val iter = Op.Iterator(this.delta.ops)
         for (op in this.delta.ops) {
             Assert.assertEquals(op, iter.next())
         }
@@ -86,7 +86,7 @@ class IteratorTest {
 
     @Test
     fun nextLength() {
-        var iter = Op.Iterator(this.delta.ops)
+        val iter = Op.Iterator(this.delta.ops)
 
         Assert.assertEquals(Op.insertOp("He", attrOf("bold" to true)), iter.next(2))
         Assert.assertEquals(Op.insertOp("llo", attrOf("bold" to true)), iter.next(10))

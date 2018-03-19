@@ -5,6 +5,7 @@ import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.times
 import com.quill.android.delta.Delta
+import com.quill.android.delta.Op
 import com.quill.android.delta.OpAttributes
 import com.quill.android.delta.utils.attrOf
 import kotlinx.serialization.json.JSON
@@ -22,16 +23,25 @@ class HelpersTest {
 
     val delta = Delta().insert("Hello").insert(hashMapOf("image" to true)).insert("World!")
 
-    val deltaCaptor = argumentCaptor<Delta>()
-    val attrCaptor = argumentCaptor<OpAttributes>()
-    val intCaptor = argumentCaptor<Int>()
+    private val deltaCaptor = argumentCaptor<Delta>()
+    private val attrCaptor = argumentCaptor<OpAttributes>()
+    private val intCaptor = argumentCaptor<Int>()
+    private val opCaptor = argumentCaptor<Op>()
+
 
     @Mock
+    private
     lateinit var predicate: (Delta, OpAttributes, Int) -> Boolean
+
     @Mock
+    private
     lateinit var predicateFalse: (Delta, OpAttributes, Int) -> Boolean
 
-    var count = 0;
+    @Mock
+    private
+    lateinit var predicateOp: (Op) -> Unit
+
+    private var count = 0
 
     @Before
     fun setUp() {
@@ -160,20 +170,6 @@ class HelpersTest {
     }
 
     @Test
-    fun earlyReturn() {
-        val delta = Delta().insert("Hello\nNew\nWorld!\n")
-
-        delta.eachLine(predicateFalse)
-
-        Mockito.verify(predicateFalse, times(2))(deltaCaptor.capture(), attrCaptor.capture(), intCaptor.capture())
-
-        Assert.assertEquals(2, deltaCaptor.allValues.size)
-        Assert.assertEquals(2, attrCaptor.allValues.size)
-        Assert.assertEquals(2, intCaptor.allValues.size)
-
-    }
-
-    @Test
     fun eachLineNonDocument() {
         val delta = Delta().retain(1).delete(2)
 
@@ -188,10 +184,33 @@ class HelpersTest {
     }
 
     @Test
+    fun earlyReturn() {
+        val delta = Delta().insert("Hello\nNew\nWorld!\n")
+
+        delta.eachLine(predicateFalse)
+
+        Mockito.verify(predicateFalse, times(2))(deltaCaptor.capture(), attrCaptor.capture(), intCaptor.capture())
+
+        Assert.assertEquals(2, deltaCaptor.allValues.size)
+        Assert.assertEquals(2, attrCaptor.allValues.size)
+        Assert.assertEquals(2, intCaptor.allValues.size)
+
+    }
+
+    @Test
     fun filter() {
         val arr = delta.filter { it.insert is String }
 
         Assert.assertEquals(2, arr.size)
+    }
+
+    @Test
+    fun forEach() {
+        delta.forEach(predicateOp)
+
+        Mockito.verify(predicateOp, times(3))(opCaptor.capture())
+
+        Assert.assertEquals(3, opCaptor.allValues.size)
     }
 
     @Test
