@@ -342,7 +342,7 @@ class Delta  {
             } else if (index > 0) {
                 line.push(iter.next(index))
             } else {
-                if (action(line, iter.next(1).attributes ?: OpAttributes(), i)) {
+                if (!action(line, iter.next(1).attributes ?: OpAttributes(), i)) {
                     return
                 }
                 i += 1

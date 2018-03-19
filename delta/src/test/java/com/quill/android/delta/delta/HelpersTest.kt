@@ -1,10 +1,19 @@
 package com.quill.android.delta.delta
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.argumentCaptor
+import com.nhaarman.mockito_kotlin.doAnswer
+import com.nhaarman.mockito_kotlin.times
 import com.quill.android.delta.Delta
+import com.quill.android.delta.OpAttributes
 import com.quill.android.delta.utils.attrOf
 import kotlinx.serialization.json.JSON
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.MockitoAnnotations
 
 /**
  * Created by volser on 16.03.18.
@@ -12,6 +21,30 @@ import org.junit.Test
 class HelpersTest {
 
     val delta = Delta().insert("Hello").insert(hashMapOf("image" to true)).insert("World!")
+
+    val deltaCaptor = argumentCaptor<Delta>()
+    val attrCaptor = argumentCaptor<OpAttributes>()
+    val intCaptor = argumentCaptor<Int>()
+
+    @Mock
+    lateinit var predicate: (Delta, OpAttributes, Int) -> Boolean
+    @Mock
+    lateinit var predicateFalse: (Delta, OpAttributes, Int) -> Boolean
+
+    var count = 0;
+
+    @Before
+    fun setUp() {
+        MockitoAnnotations.initMocks(this)
+        Mockito.`when`(predicate(any(), any(), any())).thenReturn(true)
+        Mockito.`when`(predicateFalse(any(), any(), any())).doAnswer {
+            if (count == 1) return@doAnswer false
+            count += 1
+            return@doAnswer true
+        }
+
+    }
+
 
     @Test
     fun concat() {
@@ -67,6 +100,91 @@ class HelpersTest {
         val expected = Delta().insert("Test").retain(4, attrOf("bold" to true))
 
         Assert.assertEquals(expected, delta.chop())
+    }
+
+    @Test
+    fun eachLineExpected() {
+        val delta = Delta().insert("Hello\n\n")
+                .insert("World", attrOf("bold" to true))
+                .insert( hashMapOf("image" to "octocat.png"))
+                .insert("\n", attrOf("align" to "right"))
+                .insert("!")
+
+        delta.eachLine(predicate)
+
+        Mockito.verify(predicate, times(4))(deltaCaptor.capture(), attrCaptor.capture(), intCaptor.capture())
+
+        Assert.assertEquals(4, deltaCaptor.allValues.size)
+        Assert.assertEquals(Delta().insert("Hello"), deltaCaptor.allValues[0])
+        Assert.assertEquals(Delta(), deltaCaptor.allValues[1])
+        Assert.assertEquals(Delta().insert("World", attrOf("bold" to true)).insert( hashMapOf("image" to "octocat.png")), deltaCaptor.allValues[2])
+        Assert.assertEquals(Delta().insert("!"), deltaCaptor.allValues[3])
+
+        Assert.assertEquals(4, attrCaptor.allValues.size)
+        Assert.assertEquals(attrOf(), attrCaptor.allValues[0])
+        Assert.assertEquals(attrOf(), attrCaptor.allValues[1])
+        Assert.assertEquals(attrOf("align" to "right"), attrCaptor.allValues[2])
+        Assert.assertEquals(attrOf(), attrCaptor.allValues[3])
+
+        Assert.assertEquals(4, intCaptor.allValues.size)
+        Assert.assertEquals(0, intCaptor.allValues[0])
+        Assert.assertEquals(1, intCaptor.allValues[1])
+        Assert.assertEquals(2, intCaptor.allValues[2])
+        Assert.assertEquals(3, intCaptor.allValues[3])
+
+
+    }
+
+    @Test
+    fun eachLineTrailingNewline() {
+        val delta = Delta().insert("Hello\nWorld!\n")
+
+        delta.eachLine(predicate)
+
+        Mockito.verify(predicate, times(2))(deltaCaptor.capture(), attrCaptor.capture(), intCaptor.capture())
+
+        Assert.assertEquals(2, deltaCaptor.allValues.size)
+        Assert.assertEquals(Delta().insert("Hello"), deltaCaptor.allValues[0])
+        Assert.assertEquals(Delta().insert("World!"), deltaCaptor.allValues[1])
+
+
+        Assert.assertEquals(2, attrCaptor.allValues.size)
+        Assert.assertEquals(attrOf(), attrCaptor.allValues[0])
+        Assert.assertEquals(attrOf(), attrCaptor.allValues[1])
+
+
+        Assert.assertEquals(2, intCaptor.allValues.size)
+        Assert.assertEquals(0, intCaptor.allValues[0])
+        Assert.assertEquals(1, intCaptor.allValues[1])
+
+    }
+
+    @Test
+    fun earlyReturn() {
+        val delta = Delta().insert("Hello\nNew\nWorld!\n")
+
+        delta.eachLine(predicateFalse)
+
+        Mockito.verify(predicateFalse, times(2))(deltaCaptor.capture(), attrCaptor.capture(), intCaptor.capture())
+
+        Assert.assertEquals(2, deltaCaptor.allValues.size)
+        Assert.assertEquals(2, attrCaptor.allValues.size)
+        Assert.assertEquals(2, intCaptor.allValues.size)
+
+    }
+
+    @Test
+    fun eachLineNonDocument() {
+        val delta = Delta().retain(1).delete(2)
+
+        delta.eachLine(predicate)
+
+        Mockito.verify(predicate, Mockito.never())(deltaCaptor.capture(), attrCaptor.capture(), intCaptor.capture())
+
+        Assert.assertEquals(0, deltaCaptor.allValues.size)
+        Assert.assertEquals(0, attrCaptor.allValues.size)
+        Assert.assertEquals(0, intCaptor.allValues.size)
+
     }
 
     @Test
