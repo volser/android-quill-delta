@@ -5,7 +5,7 @@ import com.quill.android.delta.OpAttributes
 /**
  * Created by volser on 08.03.18.
  */
-fun <K, V> Map<K, V>.mergeReduce(other: Map<K, V>, reduce: (V, V) -> V = { a, b -> b }): Map<K, V> {
+fun <K, V> Map<K, V>.mergeReduce(other: Map<K, V>, reduce: (V, V) -> V = { _, b -> b }): Map<K, V> {
     val result = HashMap<K, V>(this.size + other.size)
     result.putAll(this)
     other.forEach { e ->
@@ -22,7 +22,7 @@ fun <K, V> Map<K, V>.mergeReduce(other: Map<K, V>, reduce: (V, V) -> V = { a, b 
     return result
 }
 
-fun OpAttributes.mergeReduce(other: OpAttributes, reduce: (Any?, Any?) -> Any? = { a, b -> b }): OpAttributes {
+fun OpAttributes.mergeReduce(other: OpAttributes, reduce: (Any?, Any?) -> Any? = { _, b -> b }): OpAttributes {
     val result = OpAttributes(this.size + other.size)
     result.putAll(this)
     other.forEach { e ->

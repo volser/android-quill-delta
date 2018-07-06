@@ -224,7 +224,7 @@ class Delta  {
             var length = it.text.length
             while (length > 0) {
                 var opLength = 0
-                when (it.operation) {
+                when (it?.operation) {
                     diff_match_patch.Operation.INSERT -> {
                         opLength = min(otherIter.peekLength(), length)
                         delta.push(otherIter.next(opLength))
