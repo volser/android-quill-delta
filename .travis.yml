@@ -1,3 +1,23 @@
-language: java
-jdk:
-  - oraclejdk8
+language: android
+jdk: oraclejdk8
+env:
+  global:
+    - ANDROID_API_LEVEL=27
+    - ANDROID_BUILD_TOOLS_VERSION=27.0.3
+
+android:
+  components:
+    # Base components 
+    - tools # to get the new `repository-11.xml`
+    - tools # https://github.com/travis-ci/travis-ci/issues/6040#issuecomment-219367943)
+    - platform-tools   
+    - build-tools-$ANDROID_BUILD_TOOLS_VERSION # get the build tools version to build the project
+
+    # used sdk versions
+    - android-$ANDROID_API_LEVEL # get the android sdk version to build the project
+
+before_install:
+  - echo $ANDROID_TARGET
+
+script:
+  - ./gradlew test # Local unit test
