@@ -11,7 +11,7 @@ publishing {
             artifact("$buildDir/outputs/aar/delta-release.aar")
             groupId 'com.quill.android'
             artifactId 'delta'
-            version '1.0.0'
+            version '1.0.1'
 
             //The publication doesn't know about our dependencies, so we have to manually add them to the pom
             pom.withXml {
@@ -46,8 +46,8 @@ bintray {
         vcsUrl = 'https://github.com/volser/android-quill-delta.git' //replace with your repo url
 
         version {
-            name = '1.0.0' //Bintray logical version name
-            vcsTag = '1.0.0'
+            name = '1.0.1'
+            vcsTag = '1.0.1'
         }
     }
     publications = ['Production']
