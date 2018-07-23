@@ -30,4 +30,4 @@ deploy:
   skip_cleanup: true # to upload artifacts created during the build
   dry-run: false
   on:
-    branch: master
+    branch: release
