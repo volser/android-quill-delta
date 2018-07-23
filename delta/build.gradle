@@ -5,7 +5,7 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 
-publishing {
+/*publishing {
     publications {
         Production(MavenPublication) {
             artifact("$buildDir/outputs/aar/delta-release.aar")
@@ -51,7 +51,7 @@ bintray {
         }
     }
     publications = ['Production']
-}
+}*/
 
 android {
     compileSdkVersion 27
