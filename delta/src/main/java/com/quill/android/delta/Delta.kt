@@ -1,5 +1,6 @@
 package com.quill.android.delta
 
+import com.quill.android.delta.json.DeltaJson
 import com.quill.android.delta.utils.diff_match_patch
 import kotlinx.serialization.Serializable
 import kotlin.math.min
@@ -24,6 +25,15 @@ class Delta  {
 
     constructor(delta: Delta) {
         this.ops = delta.ops
+    }
+
+    constructor(text: String) {
+        val delta = DeltaJson.fromJson(text)
+        if (delta != null) {
+            this.ops = delta.ops
+        } else {
+            ops = ArrayList()
+        }
     }
 
     override fun equals(other: Any?): Boolean {
@@ -200,19 +210,19 @@ class Delta  {
         val stringBuilder1 = StringBuilder()
         val stringBuilder2 = StringBuilder()
 
-        ops.forEach({it ->
+        ops.forEach { it ->
             if (it.insert != null) {
                 if (it.insert is String) stringBuilder1.append(it.insert as String) else stringBuilder1.append(NULL_CHARACTER)
             } else
                 throw kotlin.Exception("diff() called with non-document")
-        })
+        }
 
-        other.ops.forEach({it ->
+        other.ops.forEach { it ->
             if (it.insert != null) {
                 if (it.insert is String) stringBuilder2.append(it.insert as String) else stringBuilder2.append(NULL_CHARACTER)
             } else
                 throw kotlin.Exception("diff() called on non-document")
-        })
+        }
 
 
         val thisIter = Op.Iterator(this.ops)
