@@ -10,6 +10,6 @@ Kotlin implementation of Delta format - simple, yet expressive format that can b
 
 ```gradle
 dependencies {
-      implementation 'com.quill.android:delta:1.0.0'
+      implementation 'com.quill.android:delta:1.0.2'
 }
 ```
